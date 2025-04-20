@@ -1,0 +1,123 @@
+/* Main Styles */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.footer {
+    margin-top: auto;
+}
+
+/* Task Cards */
+.task-card {
+    transition: all 0.3s ease;
+}
+
+.task-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.badge {
+    font-size: 0.8rem;
+}
+
+/* Form Styling */
+.form-label {
+    font-weight: 500;
+}
+
+/* Status Colors */
+.status-pending {
+    border-left: 4px solid #ffc107;
+}
+
+.status-in-progress {
+    border-left: 4px solid #17a2b8;
+}
+
+.status-completed {
+    border-left: 4px solid #28a745;
+}
+
+/* Priority Colors */
+.priority-high {
+    border-top: 4px solid #dc3545;
+}
+
+.priority-medium {
+    border-top: 4px solid #ffc107;
+}
+
+.priority-low {
+    border-top: 4px solid #6c757d;
+}
+
+/* Dashboard Widgets */
+.card {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 15px;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    background-color: #f8f9fa;
+    font-weight: 500;
+}
+
+/* Table Styling */
+.table th {
+    background-color: #f8f9fa;
+    font-weight: 500;
+}
+
+/* Notification Styling */
+.notification-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(25%, -25%);
+    font-size: 0.6rem;
+}
+
+#notification-dropdown {
+    width: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    border-bottom: 1px solid #eee;
+    padding: 10px 15px;
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-item.unread {
+    background-color: #f0f7ff;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Task Progress Bar */
+.progress {
+    height: 8px;
+    margin-top: 5px;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .card-title {
+        font-size: 1rem;
+    }
+    
+    .display-4 {
+        font-size: 2rem;
+    }
+}

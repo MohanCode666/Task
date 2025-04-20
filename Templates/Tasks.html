@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}Tasks{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2>Tasks</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('create_task') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create New Task
+        </a>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="assigned-tab" data-bs-toggle="tab" data-bs-target="#assigned-tasks" type="button" role="tab">
+                    Assigned to Me <span class="badge bg-primary">{{ tasks_assigned|length }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="created-tab" data-bs-toggle="tab" data-bs-target="#created-tasks" type="button" role="tab">
+                    Created by Me <span class="badge bg-primary">{{ tasks_created|length }}</span>
+                </button>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="assigned-tasks" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        {% if tasks_assigned %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Creator</th>
+                                        <th>Status</th>
+                                        <th>Priority</th>
+                                        <th>Due Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for task in tasks_assigned %}
+                                    <tr>
+                                        <td>{{ task.title }}</td>
+                                        <td>{{ task.creator.username }}</td>
+                                        <td>
+                                            {% if task.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                            {% elif task.status == 'in_progress' %}
+                                            <span class="badge bg-info">In Progress</span>
+                                            {% elif task.status == 'completed' %}
+                                            <span class="badge bg-success">Completed</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if task.priority == 'high' %}
+                                            <span class="badge bg-danger">High</span>
+                                            {% elif task.priority == 'medium' %}
+                                            <span class="badge bg-warning">Medium</span>
+                                            {% elif task.priority == 'low' %}
+                                            <span class="badge bg-secondary">Low</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else 'No due date' }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-info status-update-btn" data-task-id="{{ task.id }}" data-current-status="{{ task.status }}">
+                                                    <i class="fas fa-sync-alt"></i>
+                                                </button>
+                                                <a href="{{ url_for('edit_task', task_id=task.id) }}" class="btn btn-primary">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> No tasks are assigned to you.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="created-tasks" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        {% if tasks_created %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Assignee</th>
+                                        <th>Status</th>
+                                        <th>Priority</th>
+                                        <th>Due Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for task in tasks_created %}
+                                    <tr>
+                                        <td>{{ task.title }}</td>
+                                        <td>{{ task.assignee.username if task.assignee else 'Unassigned' }}</td>
+                                        <td>
+                                            {% if task.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                            {% elif task.status == 'in_progress' %}
+                                            <span class="badge bg-info">In Progress</span>
+                                            {% elif task.status == 'completed' %}
+                                            <span class="badge bg-success">Completed</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if task.priority == 'high' %}
+                                            <span class="badge bg-danger">High</span>
+                                            {% elif task.priority == 'medium' %}
+                                            <span class="badge bg-warning">Medium</span>
+                                            {% elif task.priority == 'low' %}
+                                            <span class="badge bg-secondary">Low</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else 'No due date' }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ url_for('edit_task', task_id=task.id) }}" class="btn btn-primary">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button class="btn btn-danger delete-task-btn" data-task-id="{{ task.id }}" data-task-title="{{ task.title }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> You haven't created any tasks yet.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Update Modal -->
+<div class="modal fade" id="statusUpdateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Task Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="task-id-input">
+                <div class="form-group">
+                    <label for="status-select">Status</label>
+                    <select class="form-select" id="status-select">
+                        <option value="pending">Pending</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="save-status-btn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Task Modal -->
+<div class="modal fade" id="deleteTaskModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the task "<span id="delete-task-title"></span>"?</p>
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="delete-task-form" method="POST">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Status update functionality
+        const statusUpdateModal = new bootstrap.Modal(document.getElementById('statusUpdateModal'));
+        const statusButtons = document.querySelectorAll('.status-update-btn');
+        const statusSelect = document.getElementById('status-select');
+        const taskIdInput = document.getElementById('task-id-input');
+        const saveStatusBtn = document.getElementById('save-status-btn');
+        
+        statusButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const taskId = this.getAttribute('data-task-id');
+                const currentStatus = this.getAttribute('data-current-status');
+                
+                taskIdInput.value = taskId;
+                statusSelect.value = currentStatus;
+                statusUpdateModal.show();
+            });
+        });
+        
+        saveStatusBtn.addEventListener('click', function() {
+            const taskId = taskIdInput.value;
+            const newStatus = statusSelect.value;
+            
+            fetch(`/api/tasks/${taskId}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Failed to update task status');
+            })
+            .then(data => {
+                statusUpdateModal.hide();
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to update task status. Please try again.');
+            });
+        });
+        
+        // Delete task functionality
+        const deleteTaskModal = new bootstrap.Modal(document.getElementById('deleteTaskModal'));
+        const deleteButtons = document.querySelectorAll('.delete-task-btn');
+        const deleteTaskTitle = document.getElementById('delete-task-title');
+        const deleteTaskForm = document.getElementById('delete-task-form');
+        
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const taskId = this.getAttribute('data-task-id');
+                const taskTitle = this.getAttribute('data-task-title');
+                
+                deleteTaskTitle.textContent = taskTitle;
+                deleteTaskForm.action = `/task/${taskId}/delete`;
+                deleteTaskModal.show();
+            });
+        });
+    });
+</script>
+{% endblock %}

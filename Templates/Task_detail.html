@@ -1,0 +1,193 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('tasks') }}">Tasks</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ task.title }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">{{ task.title }}</h4>
+            <div>
+                {% if can_edit %}
+                <a href="{{ url_for('edit_task', task_id=task.id) }}" class="btn btn-primary btn-sm me-2">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteTaskModal">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="task-description mb-4">
+                        <h5>Description</h5>
+                        <div class="p-3 bg-light rounded">{{ task.description }}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="task-details">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <strong>Status:</strong>
+                                <span class="badge 
+                                    {% if task.status == 'pending' %}bg-warning{% endif %}
+                                    {% if task.status == 'in_progress' %}bg-info{% endif %}
+                                    {% if task.status == 'completed' %}bg-success{% endif %}">
+                                    {{ task.status|replace('_', ' ')|title }}
+                                </span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <strong>Priority:</strong>
+                                <span class="badge 
+                                    {% if task.priority == 'low' %}bg-success{% endif %}
+                                    {% if task.priority == 'medium' %}bg-primary{% endif %}
+                                    {% if task.priority == 'high' %}bg-danger{% endif %}">
+                                    {{ task.priority|title }}
+                                </span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <strong>Created By:</strong>
+                                <span>{{ task.creator.username }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <strong>Assigned To:</strong>
+                                <span>{{ task.assignee.username if task.assignee else 'Unassigned' }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <strong>Created On:</strong>
+                                <span>{{ task.date_created.strftime('%Y-%m-%d %H:%M') }}</span>
+                            </li>
+                            {% if task.due_date %}
+                            <li class="list-group-item d-flex justify-content-between">
+                                <strong>Due Date:</strong>
+                                <span>{{ task.due_date.strftime('%Y-%m-%d') }}</span>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    {% if task.assignee_id == current_user.id %}
+                    <div class="mt-4">
+                        <h5>Update Status</h5>
+                        <div class="btn-group w-100" role="group">
+                            <button type="button" class="btn btn-outline-warning status-btn {% if task.status == 'pending' %}active{% endif %}" 
+                                    data-status="pending" data-task-id="{{ task.id }}">Pending</button>
+                            <button type="button" class="btn btn-outline-info status-btn {% if task.status == 'in_progress' %}active{% endif %}" 
+                                    data-status="in_progress" data-task-id="{{ task.id }}">In Progress</button>
+                            <button type="button" class="btn btn-outline-success status-btn {% if task.status == 'completed' %}active{% endif %}" 
+                                    data-status="completed" data-task-id="{{ task.id }}">Completed</button>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Task Modal -->
+{% if can_edit %}
+<div class="modal fade" id="deleteTaskModal" tabindex="-1" aria-labelledby="deleteTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteTaskModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the task "{{ task.title }}"? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('delete_task', task_id=task.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">Delete Task</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Status update functionality
+        const statusButtons = document.querySelectorAll('.status-btn');
+        statusButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const taskId = this.getAttribute('data-task-id');
+                const newStatus = this.getAttribute('data-status');
+                
+                // Remove active class from all buttons
+                statusButtons.forEach(btn => btn.classList.remove('active'));
+                
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                // Send AJAX request to update status
+                fetch (`/api/tasks/${taskId}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        status: newStatus
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to update task status');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Show a success notification
+                    const toast = `
+                        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 5">
+                            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                                <div class="toast-header">
+                                    <strong class="me-auto">Task Updated</strong>
+                                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                                </div>
+                                <div class="toast-body">
+                                    Task status updated to ${newStatus.replace('_', ' ')}.
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.body.insertAdjacentHTML('beforeend', toast);
+                    
+                    // Auto-hide toast after 3 seconds
+                    setTimeout(() => {
+                        const toastElement = document.querySelector('.toast');
+                        if (toastElement) {
+                            toastElement.classList.remove('show');
+                            setTimeout(() => toastElement.remove(), 500);
+                        }
+                    }, 3000);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to update task status. Please try again.');
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}
+
