@@ -9,6 +9,7 @@ from wtforms import StringField, PasswordField, SubmitField, SelectField, TextAr
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Length
 from datetime import datetime, date
 import json
+import os
 from config import Config
 
 # Initialize Flask app
@@ -20,7 +21,7 @@ db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 csrf = CSRFProtect(app)
 
 # Models
@@ -560,4 +561,4 @@ def edit_task(task_id):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    socketio.run(app, debug=False)
+    socketio.run(app, debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
