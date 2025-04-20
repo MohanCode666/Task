@@ -166,7 +166,7 @@ def register():
         db.session.commit()
         flash('Your account has been created! You can now log in.', 'success')
         return redirect(url_for('login'))
-    return render_template('register.html', title='Register', form=form)
+    return render_template('Register.html', title='Register', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -181,7 +181,7 @@ def login():
             return redirect(next_page) if next_page else redirect(url_for('dashboard'))
         else:
             flash('Login unsuccessful. Please check email and password.', 'danger')
-    return render_template('login.html', title='Login', form=form)
+    return render_template('Login.html', title='Login', form=form)
 
 @app.route('/logout')
 def logout():
@@ -201,7 +201,7 @@ def dashboard():
     completed_tasks = sum(1 for task in tasks_assigned if task.status == 'completed')
     
     return render_template(
-        'dashboard.html', 
+        'Dashboard.html', 
         title='Dashboard',
         tasks_created=tasks_created,
         tasks_assigned=tasks_assigned,
